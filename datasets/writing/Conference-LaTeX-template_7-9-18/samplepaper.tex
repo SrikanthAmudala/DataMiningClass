@@ -1,0 +1,429 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{esvect}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{comment}
+\graphicspath{ {./IMAGES/} } 
+
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+% \renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\begin{document}
+%
+
+\title{Contribution Title\thanks{Supported by organization x.}}
+
+\section{The proposed model}
+%Equations 
+
+\subsection{Asymmetric Gaussian Mixture Model}
+Let $X= [\vv{X}_{1},\dots, \vv{X}_{N}]$ be a set of $N$ independent and identically distributed observations, where each
+observation can be represented as a $D$ dimensional random variable 
+$\vv{X}_{i}= [x_{i1},\dots, x_{iD}] $ , assumed to follow an Asymmetric Gaussian Mixture model with $K$ components. Thus, the AGMM can be written as follows:
+
+\begin{equation}
+   \mathit{P}(X| \Theta) = \prod_{i=1}^{N}\sum_{k=1}^{K} \pi_{k}p(\vv{X}_{i}|\xi_{k}) 
+\end{equation}
+where 
+$\xi_{k}$ is the set of parameters of k-th component,
+$\pi_{k}$ are the mixing weights which must sum to 1,
+$\Theta = \{\pi_{1},\dots,\pi_{K},\xi_{1},\dots,\xi_{K}\}$ is the set of parameters of the mixture and 
+$K\geqslant{1}$  is number of components in the mixture.
+
+Hence, each component's density $p(\vv{X}_{i}|\xi_{k})$  is an Asymmetric Gaussian Distribution(AGD) given by: 
+
+\begin{equation}
+   p(\vv{X}_{i}|\xi_{k}) = \prod_{d=1}^{D}\times\sqrt{\frac{2}{\pi}}\frac{1}{\tau_{l_{dk}}^{-\frac{1}{2}}+\tau_{r_{dk}}^{-\frac{1}{2}}} \text{exp}
+   \begin{cases}
+      -\frac{\tau_{l_k}}{2}(x_{id}-\mu_{dk})^2,& \text{if } x_{id}<\mu_{dk}
+      \\-\frac{\tau_{r_k}}{2}(x_{id}-\mu_{dk})^2,& \text{if } x_{id}\geq\mu_{dk}
+
+   \end{cases}
+\end{equation}
+where $\xi_{k} = (\mu_{k},\tau_{l_k},\tau_{r_k})$ is the set of parameters of component $k$ and 
+$\mu_{k} = [\mu_{k1},\dots,\mu_{kd}],\tau_{l_k} = [\tau_{l_{k1}},\dots,\tau_{l_{kd}}],\tau_{r_k} = [\tau_{r_{k1}},\dots,\tau_{r_{kd}}]$
+are the mean, left precision and right precision of AGD, respectively.
+Note that we define the distribution in terms of precision rather than variance ($\tau=\frac{1}{\sigma^2}$) as this somewhat simplifies the derivations to be followed.
+ 
+At this point, let us introduce for each observation a K-dimensional binary random variable $Z_{i} = [z_{i1},\dots,z_{iK}]$,
+in which $z_{ik}$ = 1 only if element i belongs in cluster k and all other elements are equal to 0. Therefore, the values of 
+$Z_{i}$ satisfy $z_{ik} \in \{0, 1\}$  and $\sum_{k=1}^{K}z_{ik} = 1$. 
+From this definition. we can write down the conditional distribution of lattent variable Z, given the mixing
+coefficients $\pi$, in the form: 
+
+\begin{equation}
+   \mathit{P}(Z|\pi) = \prod_{i=1}^{N}\prod_{k=1}^{K} \pi_{k}^{Z_{ik}} 
+\end{equation}
+Similarly, from equation (2) we can write down the conditional distribution of data vectors $X$, 
+given the latent variables Z and the component parameters $\mu, \tau_l , \tau_r$ in the form: 
+
+\begin{equation}
+   \mathit{P}(X| Z, \mu, \tau_l, \tau_r) =\prod_{i=1}^{N}\prod_{k=1}^{K}AG(\vv{X}_{i}|\mu_{k},\tau_{l_k}^{-1},\tau_{r_k}^{-1})^{Z_{ik}}
+\end{equation}
+
+Combining equations (3) and (4), we can rewrite the data likelihood in the given form:
+
+\begin{equation}
+   \mathit{P}(X| Z,\Theta) = \prod_{i=1}^{N}\prod_{k=1}^{K} (\pi_{k}p(\vv{X}_{i}|\xi_{k}))^{Z_{ik}} 
+\end{equation}
+
+As it will be clear later, the analysis is considerably simplified if we use conjugate prior distributions 
+over the parameters $\pi,\tau_{l}, \tau_{r}$ and $\mu$.
+
+Therefore, we choose a Dirichlet distribution over the mixing coefficients $\pi$
+
+\begin{equation}
+p(\pi)= Dir(\pi|\alpha_0)=  \frac{\Gamma(\sum_{k=1}^{K} \alpha_{0})}{\prod_{k=1}^{K} \Gamma(\alpha_{0})}\prod_{k=1}^{K} \pi_k^{\alpha_0-1}
+\end{equation}
+
+where by symmetry we have choosen the same parameter $\alpha_0$ for each component. (Short description for the choice and $\alpha_0$)
+
+Moreover, we choose a Gaussian distribution over the mean $\mu$, 
+and a Gamma distribution over precision parameters $\tau_{l}$ and $\tau_{r}$. Their equations are given below:
+
+\begin{equation}
+p(\mu)= \prod_{k=1}^{K} N(\mu_k|m_0,v_0)= (\frac{v_0}{2\pi})^{\frac{N}{2}}\text{exp}\{-\frac{v_0\sum_{k=1}^{K}(\mu_k - m_0)^2}{2}\}
+\end{equation}
+
+\begin{equation}
+p(\tau_l)= \prod_{k=1}^{K} Gam(\tau_{l_k}|a_0,b_0)= \frac{b_0^{a_0}}{\Gamma(a_{0})}\prod_{k=1}^{K}\tau_{l_k}^{a_0-1}\text{exp}\{-b_0\tau_{l_k}\}
+\end{equation}
+
+\begin{equation}
+p(\tau_r)= \prod_{k=1}^{K} Gam(\tau_{r_k}|c_0,d_0)= \frac{c_0^{d_0}}{\Gamma(c_{0})}\prod_{k=1}^{K}\tau_{r_k}^{c_0-1}\text{exp}\{-d_0\tau_{r_k}\}
+\end{equation}
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+   \centering
+   \includegraphics[width=0.5\textwidth]{GraphicalModel}
+   \caption[width=0.5\textwidth]{Should ask Ziyang about hyperparameters dimensions, 
+   and Samr if it's} \label{fig1}
+\end{wrapfigure}
+
+The resulting model can be represented as a directed graph as shown in Figure 1.
+
+
+\subsection{Variational Asymmetric Gaussian Mixture Model}
+
+In this paper, we adopt the variational inference methodology proposed in Bishop Book(reference to be added) for finite Gaussian mixtures. 
+Variational inference(VI) is used to approximate probability densities by optimizing the Kullback-Leibler divergence between the true posterior
+and the approximate distribution. KL divergence is used to measure the proximity between two densities. It is assymetrix and always positive.
+The smaller KL divergence, the stronger is the relationship between distributions. Its equation is given by:
+
+\begin{equation}
+   KL(p\parallel q) = - \int q(Z) \log{\frac{p(Z|X)}{q(Z)}}dZ
+\end{equation}
+Expand the conditional, 
+\begin{equation}
+   \begin{split}
+   KL(p\parallel q) & = - \int q(Z) \log\{\frac{p(Z,X)}{q(Z)}-\log p(X)\}dZ \\ &
+   = - \int q(Z) \log\{\frac{p(Z,X)}{q(Z)}\}dZ + \log p(X)
+   \end{split}
+\end{equation}
+In order to calculate the KL divergence, we need first to calculate the evidence $\log p(X)$. 
+This evidence is hard to calculate, which is one of motives behind the variational inference approach in the first place.
+Reordering equation (11), we get: 
+\begin{equation}
+   KL(p\parallel q) + \underbrace{\int q(Z) \log\{\frac{p(Z,X)}{q(Z)}\}dZ}_\text{Evidence Lower Bound}= \log p(X)
+\end{equation}
+
+Maximizing the evidence lower bound(ELBO) is the same as minimizing the KL divergence. Their relation is specified in Figure 2.
+Also, by applying Jensen's inequality can be found that ELBO serves as a lower-bound for the log-evidence, $\log p(X) \geq$ ELBO(q) for any q(Z),which is
+the approximate of the posterior.  
+In order to maximize ELBO, we need to choose a variational family $Q$. There are different approaches available.
+The complexity of the family determines the complexity of the optimization. Our goal is to restrict the family sufficiently that they comprise only tractable distributions,
+while at the same time allowing the family to be sufficiently rich and flexible that it
+can provide a good approximation to the true posterior distribution.
+In this paper, we focus on the mean-field variational family, where we assume that the q distribution factorizes
+with respect to these groups, so that
+\begin{equation}
+   q(Z) = \prod_{i=1}^{M}q_i(Z_i)
+\end{equation}
+Latent variables are mutually independent and each is governed by its own variational 
+factor, the density $q_i(Z_i)$
+It should be emphasized that we are making no further assumptions about the distribution.
+In particular, we place no restriction on the functional forms of the individual
+factors qi(Zi).
+
+Therefore, instead of conditional probability we now need to calculate the joint distribution. 
+I need to add some more equations here and a paragraph to achieve to the following result. 
+
+\begin{equation}
+   \ln q^*_j (Z_j) = \mathbb{E}_{i \neq j}[\ln p(X,Z)] + \text{const.}
+\end{equation}
+
+In order to formulate a variational treatment of our model, we next write down
+the joint distribution of all of the random variables, which is given by
+\begin{equation}
+p(X,Z,\pi,\mu,\tau_{l},\tau_{r}) = p(X|Z,\mu,\tau_{l},\tau_{r})p(Z|\pi)p(\pi)p(\mu)p(\tau_{l})p(\tau_{r})
+\end{equation}
+
+We now consider a variational distribution which factorizes between the latent
+variables and the parameters so that
+
+\begin{equation}
+   q(Z,\pi,\mu,\tau_{l},\tau_{r}) = q(Z)q(\pi,\mu,\tau_l,\tau_r)
+\end{equation}
+It is remarkable that this is the only assumption that we need to make in order to
+obtain a tractable practical solution to our Bayesian mixture model. In particular, the
+functional form of the factors q(Z) and will be determined automatically
+by optimization of the variational distribution.
+
+Let us consider the derivation of the update equation for the factor $q(Z)$. 
+The log of the optimized factor is given by: 
+
+\begin{equation}
+   \text{ln }q^*(Z) = \mathbb{E}_{\pi,\mu,\tau_l,\tau_r}[\text{ln }p(X,Z,\pi,\mu,\tau_l,\tau_r)] + \text{const.}
+\end{equation}
+We now make use of the decomposition (10.41). Note that we are only interested in
+the functional dependence of the right-hand side on the variable Z. Thus any terms
+that do not depend on Z can be absorbed into the additive normalization constant,
+giving
+\begin{equation}
+   \text{ln }q^*(Z) = \mathbb{E}_{\pi}[\text{ln }p(Z|\pi) + \mathbb{E}_{\mu,\tau_l,\tau_r}\text{ln }p(X|Z,\mu,\tau_l,\tau_r)] + \text{const.}
+\end{equation}
+Substituting for the two conditional distributions on the right-hand side, and again
+absorbing any terms that are independent of Z into the additive constant, we have
+\begin{equation}
+\text{ln }q^*(Z) = \sum_{i=1}^{N}\sum_{k=1}^{K}z_{ik}\text{ln}\rho_{ik} + \text{const.} 
+\end{equation}
+where we have defined 
+
+
+\begin{equation}
+\text{ln}\rho_{ik} =
+\begin{cases} 
+\mathbb{E}[ln\pi_k]+\mathbb{E}[\ln(\tau_{l_k}^{-\frac{1}{2}} +\tau_{r_k}^{-\frac{1}{2}})]-\frac{1}{2}\mathbb{E}[\tau_{l_k}(x_i-\mu_k)^2] - \frac{1}{2}ln\frac{2}{\pi}
+,& \text{if } x_{i}<\mu_{k}
+\\\mathbb{E}[ln\pi_k]+\mathbb{E}[\ln(\tau_{l_k}^{-\frac{1}{2}} + \tau_{r_k}^{-\frac{1}{2}})] - \frac{1}{2}\mathbb{E}[\tau_{r_k}(x_i-\mu_k)^2] - 
+\frac{1}{2}ln\frac{2}{\pi},&\text{if } x_{i}\geq\mu_{k}
+
+\end{cases} 
+\end{equation}
+
+Taking the exponential of both sides of we obtain
+\begin{equation}
+   q^*(Z)\propto\prod_{i=1}^{N}\prod_{k=1}^{K}\rho_{ik}^{z_{ik}}
+\end{equation}
+
+Requiring that this distribution be normalized, and noting that for each value of n the quantities $z_{ik}$ are binary and sum to 1 over all values of k, we obtain
+\begin{equation}
+   q^*(Z)=\prod_{i=1}^{N}\prod_{k=1}^{K}r_{ik}^{z_{ik}}
+\end{equation}
+where
+\begin{equation}
+   r_{ik}=\frac{\rho_{ik}}{\sum_{j=1}^{K}\rho_{jk}}
+\end{equation}
+
+%We see that the optimal solution for the factor q(Z) takes the same functional form
+%as the prior p(Z|π). Note that because ρnk is given by the exponential of a real
+%quantity, the quantities rnk will be nonnegative and will sum to one, as required.
+%For the discrete distribution q*(Z) we have the standard result
+
+\begin{equation}
+\mathbb{E}[z_{ik}] = r_{ik}
+\end{equation}
+
+Now let us consider the factor $q(\pi,\mu,\tau_l,\tau_r)$ in the variational posterior distribution.
+We suppose that the variational posterior factorizes in the form :
+\begin{equation}
+   q(\pi,\mu,\tau_l,\tau_r) = q(\pi)q(\mu)q(\tau_l)q(\tau_r) 
+\end{equation}
+   
+
+\begin{equation}
+   \text{ln }q^*(\pi) = \mathbb{E}_z[\text{ln }p(Z|\pi) + \text{ln }p(\pi)] + \text{const.}
+\end{equation}
+Identifying the terms on the right-hand side that depend on $\pi$, we have
+\begin{equation}
+   \text{ln }q^*(\pi) = \sum_{k=1}^{K}ln\pi_k(N_k +\alpha_0 - 1) + \text{const.}
+\end{equation}
+Taking the exponential of both sides, we recognize
+$q^*(\pi)$ as a Dirichlet distribution
+\begin{equation}
+   q^*(\pi)	\sim Dir(\pi|\alpha_k)
+\end{equation}
+where 
+\begin{equation}
+ \alpha_k = \alpha_0+ N_k-1
+\end{equation}
+
+
+\begin{equation}
+   \text{ln }q^*(\mu) = \mathbb{E}_{z,\tau_l,\tau_r}[\text{ln }p(X|z,\mu,\tau_l,\tau_r) + \text{ln }p(\mu)] + \text{const.}
+\end{equation}
+Similarly, we recognize $q^*(\mu)$ as a Normal distribution 
+\begin{equation}
+   q^*(\mu)	\sim N(\mu|m_k,v_k)
+\end{equation}
+where 
+
+\begin{equation} 
+   v_k=
+   \begin{cases}
+   v_0+N_k\mathbb{E}[\tau_{l_k}],& \text{if } x_{i}<\mu_{k}
+   \\v_0+N_k\mathbb{E}[\tau_{r_k}],& \text{if } x_{i}\geq\mu_{k}
+   \end{cases}
+\end{equation}
+\begin{equation} 
+   m_k=
+   \begin{cases}
+   v_0m_0+ \frac{v_0m_0+ N_k\mathbb{E}[\tau_{l_k}]\sum_{i=1}^{N}X_i}{v_0+N_k\mathbb{E}[\tau_{l_k}]}
+   ,& \text{if } x_{i}<\mu_{k}
+   \\v_0m_0+ \frac{v_0m_0+ N_k\mathbb{E}[\tau_{r_k}]\sum_{i=1}^{N}X_i}{v_0+N_k\mathbb{E}[\tau_{r_k}]}
+   ,& \text{if } x_{i}\geq\mu_{k}
+   \end{cases}
+\end{equation}
+
+and $q^*(\tau_l)$, $q^*(\tau_r)$ as Gamma distributions. 
+
+\begin{equation}
+   \text{ln }q^*(\tau_l) = \mathbb{E}_{z,\mu,\tau_r}[\text{ln }p(X|z,\mu,\tau_l,\tau_r) + \text{ln }p(\tau_l)] + \text{const.}
+\end{equation}
+
+\begin{equation}
+   \text{ln }q^*(\tau_r) = \mathbb{E}_{z,\mu,\tau_l}[\text{ln }p(X|z,\mu,\tau_l,\tau_r) + \text{ln }p(\tau_r)] + \text{const.}
+\end{equation}
+
+\begin{equation}
+   q^*(\tau_l)	\sim Gam(\tau_l|a_k,b_k)
+\end{equation}
+\begin{equation}
+   q^*(\tau_r)	\sim Gam(\tau_r|c_k,d_k)
+\end{equation}
+
+where 
+\begin{equation} 
+   a_k =a_0+\frac{N_k}{2}
+\end{equation}
+\begin{equation} 
+   b_k=b_0+\frac{N_k}{2}\mathbb{E}[(X_i-\mu_k)^2]
+\end{equation}
+\begin{equation} 
+   c_k =c_0+\frac{N_k}{2}
+\end{equation}
+\begin{equation} 
+   d_k=d_0+\frac{N_k}{2}\mathbb{E}[(X_i-\mu_k)^2]
+\end{equation}
+
+\subsection{Variational Lower Bound}
+\begin{equation} 
+   \begin{split}
+   \mathcal{L} &=\sum_{Z}\iiiint q(Z,\pi,\mu,\tau_l,\tau_r)\frac{\ln{p(Z,\pi,\mu,\tau_l,\tau_r)}}
+   {q(Z,\pi,\mu,\tau_l,\tau_r)} d\pi d\mu d\tau_l d\tau_r
+ \\ & = \mathbb{E}[\ln p(X,Z,\pi,\mu,\tau_l,\tau_r)]-\mathbb{E}[\ln q(X,Z,\pi,\mu,\tau_l,\tau_r)]
+ \\ & = \mathbb{E}[\ln p(X|Z,\pi,\mu,\tau_l,\tau_r)] + \mathbb{E}[\ln p(Z|\pi)] +\mathbb{E}[\ln p(\pi)]+ \mathbb{E}[\ln p(\mu)]+\mathbb{E}[\ln p(\tau_l)] \\
+   & +\mathbb{E}[\ln p(\tau_r)] -\mathbb{E}[\ln q(Z)]-\mathbb{E}[\ln q(\pi)]-\mathbb{E}[\ln q(\mu)]-\mathbb{E}[\ln q(\tau_l)]-\mathbb{E}[\ln q(\tau_r)]
+   \end{split}
+   %\label{eq}
+\end{equation}
+where
+\begin{equation} 
+   \mathbb{E}[\ln p(X|Z,\pi,\mu,\tau_l,\tau_r)] = \sum_{i=1}^{N}\sum_{k=1}^{K}r_{ik}
+   \begin{cases}
+      \begin{split}
+      \frac{1}{2}\ln \frac{2}{\pi}-\mathbb{E}_{\tau_{lk}}[\ln(\tau_{l_k}^{-\frac{1}{2}} +\tau_{r_k}^{-\frac{1}{2}})]
+      \\-\frac{1}{2}\mathbb{E}[\tau_{l_k}(X_i-\mu_k)^2],& \text{ if } X_{i}<\mu_{k} \\ &
+   \\ \frac{1}{2}\ln \frac{2}{\pi}-\mathbb{E}_{\tau_{rk}}[\ln(\tau_{l_k}^{-\frac{1}{2}} +\tau_{r_k}^{-\frac{1}{2}})] \\
+   -\frac{1}{2}\mathbb{E}[\tau_{r_k}(X_i-\mu_k)^2]
+   , & \text{ if } X_{i}\geq\mu_{k} \\ &
+   \end{split}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\mathbb{E}[\ln p(Z|\pi)]=\sum_{i=1}^{N}\sum_{k=1}^{K}r_{ik}\mathbb{E}[\ln \pi_k]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln p(\pi)] = \ln C(\alpha_0)+(\alpha_0-1)\sum_{k=1}^{K}\mathbb{E}[\ln \pi_k]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln p(\mu)] = \frac{1}{2}\ln \frac{v_0}{2\pi} - v_0\mathbb{E}[(\mu_k-m_0)^2]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln p(\tau_l)] = \ln \frac{{b_0}^{a_0}}{\Gamma(a_0)} + (a_0-1)\mathbb{E}[\ln \tau_{l_k}]-b_0\mathbb{E}[\tau_{l_k}]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln p(\tau_r)] = \ln \frac{{d_0}^{c_0}}{\Gamma(c_0)} + (c_0-1)\mathbb{E}[\ln \tau_{r_k}]-d_0\mathbb{E}[\tau_{r_k}]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln q(Z)] = \sum_{i=1}^{N}\sum_{k=1}^{K}r_{ik}\ln r_{ik}
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln q(\pi)] = \ln C(\alpha_k)+(\alpha_k-1)\sum_{k=1}^{K}\mathbb{E}[\ln \pi_k]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln q(\mu)]= \frac{1}{2}\ln \frac{v_k}{2\pi} - v_k\mathbb{E}[(\mu_k-m_k)^2]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln q(\tau_l)] = \ln \frac{{b_k}^{a_k}}{\Gamma(a_k)} + (a_k-1)\mathbb{E}[\ln \tau_{l_k}]-b_k\mathbb{E}[\tau_{l_k}]
+\end{equation}
+
+\begin{equation}
+   \mathbb{E}[\ln q(\tau_r)] = \ln \frac{{d_k}^{c_k}}{\Gamma(c_k)} + (c_k-1)\mathbb{E}[\ln \tau_{r_k}]-d_k\mathbb{E}[\tau_{r_k}]
+\end{equation}
+
+Expectations: 
+
+\begin{equation}
+   \mathbb{E}[\ln \pi_k] = \psi(\alpha_k) -  \psi(\sum_{k=1}^{K}\alpha_k)
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\tau_{l_k}] = \frac{a_k}{b_k}
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\ln \tau_{l_k}] = \psi(a_k) - \ln b_k
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\tau_{r_k}] = \frac{c_k}{d_k}
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\ln \tau_{r_k}] = \psi(c_k) - \ln d_k
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\mu_k] = m_k
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\mu_k^2] = v_k^{-1} + m_k^2
+\end{equation}
+\begin{equation}
+   \mathbb{E}[(X_i-\mu_k)^2] = v_k^{-1} + (X_i - m_k)^2
+\end{equation}
+\begin{equation}
+   \mathbb{E}[(\mu_k-m_0)^2] = v_k^{-1} + (m_k - m_0)^2
+\end{equation}
+\begin{equation}
+   \mathbb{E}[(\mu_k-m_k)^2] = v_k^{-1}
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\tau_{l_k}(X_i-\mu_k)^2] = \frac{a_k}{b_k}\{v_k^{-1} + (X_i - m_k)^2\}
+\end{equation}
+\begin{equation}
+   \mathbb{E}[\tau_{r_k}(X_i-\mu_k)^2] = \frac{c_k}{d_k}\{v_k^{-1} + (X_i - m_k)^2\}
+\end{equation}
+\begin{equation}
+\mathbb{E}_{\tau_{lk}}[\ln(\tau_{l_k}^{-\frac{1}{2}} +\tau_{r_k}^{-\frac{1}{2}})] = ?
+\end{equation}
+
+\end{document}
