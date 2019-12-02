@@ -63,7 +63,7 @@ def lowerbound_second_dir(rnk, x, shape, mk, s0, e_precision_):
 
 import pandas
 
-data = pandas.read_csv("/Users/Srikanth/PycharmProjects/DataMiningClass/datasets/classification/pulsar_stars.csv",
+data = pandas.read_csv("/home/k_mathin/PycharmProjects/DataMiningClass/datasets/classification/pulsar_stars.csv",
                        header=None,
                        skiprows=1)
 
@@ -152,18 +152,21 @@ for train_index, test_index in skf.split(X, y):
         e_precision_ = alphak / betak
 
         # Feature
-
         term1 = (rnk * (digamma(alphak) - np.log(betak))).sum(axis=1) / 2
         term2 = 1 / 2 * (rnk * (alphak / betak) * ((x.reshape(-1, 1) - mk.reshape(-1, 1).T) ** 2 + 1 / sk)).sum(axis=1)
+
         row_in_e = np.exp(term1 - term2)
-        w = np.asarray([0.5 for _ in range(k)])
+        w = np.asarray([1 for _ in range(k)])
 
         epsolon = mk
         var_test = sk
         epsolon_in = np.exp(
             -1 / 2 * 1 / var_test * ((x.reshape(-1, 1) - epsolon.reshape(-1, 1).T) ** 2) + 1 / 2 * np.log(1 / var_test))
 
-        fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
+        num1 = w * row_in_e.reshape(-1, 1)
+        den1 = w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in
+        fik = np.divide(num1, den1, out=np.zeros_like(num1), where=den1 != 0)
+        # fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
 
         for cluster in range(k):
             for i in range(len(x)):
@@ -248,30 +251,13 @@ for train_index, test_index in skf.split(X, y):
         gammak = gamma0 + Nk
         gammak_list.append(gammak)
 
-        # e_ln_pi = e_ln_pi_k(gammak, Nk)
-
-        # for i in range(k):
-        #     p1 = e_ln_pi[i] + (1 / shape[i]) * e_ln_precision_[i] + np.log(shape[i]) - np.log(2 * gamma(1 / shape[i]))
-        #     z[:, i] = (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
-        # z_list.append(z)
-
-        #
-        # z_list = np.asarray(z_list)
-        # z_final = z_list.sum(axis = 0)
-        #
-        # alpthak_list = np.asarray(alpthak_list)
-        # betak_list = np.asarray(betak_list)
-        # gammak_list = np.asarray(gammak_list)
-        # mk_list = np.asarray(mk_list)
-        # sk_list = np.asarray(sk_list)
-
-        L1 = lowerbound_first_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
-        L2 = lowerbound_second_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
-        L1 += sys.float_info.epsilon
-        L2 += sys.float_info.epsilon
-        delta_lowerbound = L1 / L2
-        delta_lowerbound += sys.float_info.epsilon
-        shape = shape - 0.01 * (delta_lowerbound)
+        # L1 = lowerbound_first_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
+        # L2 = lowerbound_second_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
+        # L1 += sys.float_info.epsilon
+        # L2 += sys.float_info.epsilon
+        # delta_lowerbound = L1 / L2
+        # delta_lowerbound += sys.float_info.epsilon
+        # shape = shape - 0.01 * (delta_lowerbound)
         x_test = X_test[:, dim]
 
         temp1 = np.zeros((len(x_test), k))
@@ -312,26 +298,45 @@ for train_index, test_index in skf.split(X, y):
 
                 e_x_mean_lambda_[i, cluster] = abs(e_x_mean_lambda_[i, cluster])
 
-
-
         w = fik.sum(axis=0) / len(fik)
-        epsolon = (fik * x.reshape(-1, 1)).sum(axis=0) / fik.sum(axis=0)
-        var_test = (fik * ((x - epsolon.reshape(-1, 1)) ** 2).T).sum(axis=0) / fik.sum(axis=0)
+
+        for i in range(k):
+            p1 = e_ln_pi[i] + (1 / shape[i]) * e_ln_precision_[i] + np.log(shape[i]) - np.log(2 * gamma(1 / shape[i]))
+            z1[:, i] = (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
+
+
+
+        rnk = np.exp(z1) / np.reshape(np.exp(z1).sum(axis=0), (-1, 1)).T
+
+
+
         term1 = (rnk * (digamma(alphak) - np.log(betak))).sum(axis=1) / 2
-        term2 = 1 / 2 * (rnk * (alphak / betak) * ((x.reshape(-1, 1) - mk.reshape(-1, 1).T) ** 2 + 1 / sk)).sum(axis=1)
+
+        term2 = 1 / 2 * (rnk * (alphak / betak) * ((x_test.reshape(-1, 1) - mk.reshape(-1, 1).T) ** 2 + 1 / sk)).sum(
+            axis=1)
         row_in_e = np.exp(term1 - term2)
-        fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
+
+        epsolon_in = np.exp(
+            -1 / 2 * 1 / var_test * ((x_test.reshape(-1, 1) - epsolon.reshape(-1, 1).T) ** 2) + 1 / 2 * np.log(
+                1 / var_test))
+        num1 = w * row_in_e.reshape(-1, 1)
+        den1 = w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in
+        fik = np.divide(num1, den1, out=np.zeros_like(num1), where=den1 != 0)
+        # fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
+
+        epsolon = (fik * x_test.reshape(-1, 1)).sum(axis=0) / fik.sum(axis=0)
+        var_test = (fik * ((x_test - epsolon.reshape(-1, 1)) ** 2).T).sum(axis=0) / fik.sum(axis=0)
+
         for i in range(k):
             p1 = (1 / shape[i]) * e_ln_precision_[i] + np.log(shape[i]) - np.log(2 * gamma(1 / shape[i]))
             p2 = fik[:, i] * (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
             p3 = (1 / 2) * np.log(1 / var_test[i]) + np.log(2) - np.log(2 * gamma(1 / 2)) - 1 / var_test[i] * (
-                    x - epsolon[i]) ** 2
+                    x_test - epsolon[i]) ** 2
             p4 = e_ln_pi[i] + p2 + (1 - fik[:, i]) * p3
-            z[:, i] = p4
+            z1[:, i] = p4
 
-
-        np.seterr(divide='ignore', invalid='ignore')
-        rnk = np.exp(z) / np.reshape(np.exp(z1).sum(axis=1), (-1, 1))
+        # np.seterr(divide='ignore', invalid='ignore')
+        rnk = np.exp(z1) / np.reshape(np.exp(z1).sum(axis=0), (-1, 1)).T
         z_list.append(rnk)
 
     z_list = np.asarray(z_list).sum(axis=0)

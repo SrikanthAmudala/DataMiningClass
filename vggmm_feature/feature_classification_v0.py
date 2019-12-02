@@ -162,7 +162,6 @@ for train_index, test_index in skf.split(X, y):
             p2 = (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
             fik[:, i] = rnk[:, i] * (p2 + np.log(phi[i]))
 
-
         for cluster in range(k):
             for i in range(len(x)):
                 if x[i] > mk[cluster]:
@@ -191,8 +190,6 @@ for train_index, test_index in skf.split(X, y):
                         e_mean_n(sk, mk, shape[cluster], k)[cluster] + t1[cluster] + t2[cluster])
 
                     # e_x_mean_lambda_[i, cluster] = abs(e_x_mean_lambda_[i, cluster])
-
-
 
         for cluster in range(k):
             for i in range(len(x)):
@@ -265,7 +262,6 @@ for train_index, test_index in skf.split(X, y):
         # mk_list = np.asarray(mk_list)
         # sk_list = np.asarray(sk_list)
 
-
         L1 = lowerbound_first_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
         L2 = lowerbound_second_dir(rnk, x, shape, mk, sk, e_precision_).sum(axis=0)
         L1 += sys.float_info.epsilon
@@ -317,14 +313,12 @@ for train_index, test_index in skf.split(X, y):
             p1 = e_ln_pi[i] + (1 / shape[i]) * e_ln_precision_[i] + np.log(shape[i]) - np.log(2 * gamma(1 / shape[i]))
             z1[:, i] = (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
 
-
         # fik = rnk
         # fik_1 = rnk
         # phi = rnk.sum(axis=0) / len(rnk)
         #
         # f_mean = mk
         # f_precision = sk
-
 
         fik = z1.copy()
 
