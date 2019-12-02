@@ -1,5 +1,5 @@
 """
-Feature selection, with equations from the paper
+Feature selection, with equations from the paper gmm
 
 """
 
@@ -234,6 +234,8 @@ epsolon = m0
 var_test = s0
 epsolon_in = np.exp(
     -1 / 2 * 1 / var_test * ((x.reshape(-1, 1) - epsolon.reshape(-1, 1).T) ** 2) + 1 / 2 * np.log(1 / var_test))
+
+
 fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
 
 w = fik.sum(axis=0) / len(fik)
