@@ -225,32 +225,31 @@ for cluster in range(k):
             # e_x_mean_lambda_[i, cluster] = abs(e_x_mean_lambda_[i, cluster])
 count = 0
 
-
 # feature selection parameters
-term1 = (rnk * (digamma(alphak) - np.log(betak))).sum(axis=1)/2
-term2 =1/2 * (rnk* (alphak/betak) * ((x.reshape(-1,1) - mk.reshape(-1,1).T)**2 + 1/sk)).sum(axis=1)
-row_in_e = np.exp(term1-term2)
+term1 = (rnk * (digamma(alphak) - np.log(betak))).sum(axis=1) / 2
+term2 = 1 / 2 * (rnk * (alphak / betak) * ((x.reshape(-1, 1) - mk.reshape(-1, 1).T) ** 2 + 1 / sk)).sum(axis=1)
+row_in_e = np.exp(term1 - term2)
 w = np.asarray([0.5 for _ in range(k)])
 epsolon = m0
 var_test = s0
-epsolon_in = np.exp(-1/2*1/var_test*((x.reshape(-1,1) - epsolon.reshape(-1,1).T)**2) + 1/2*np.log(1/var_test))
-fik = (w * row_in_e.reshape(-1,1))/(w*row_in_e.reshape(-1,1) + (1 - w)*epsolon_in)
+epsolon_in = np.exp(
+    -1 / 2 * 1 / var_test * ((x.reshape(-1, 1) - epsolon.reshape(-1, 1).T) ** 2) + 1 / 2 * np.log(1 / var_test))
+fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
 
-
-w = fik.sum(axis=0)/len(fik)
-epsolon = (fik*x.reshape(-1,1)).sum(axis=0)/fik.sum(axis=0)
-var_test = (fik*((x - epsolon.reshape(-1,1))**2).T).sum(axis=0)/fik.sum(axis=0)
-
+w = fik.sum(axis=0) / len(fik)
+epsolon = (fik * x.reshape(-1, 1)).sum(axis=0) / fik.sum(axis=0)
+var_test = (fik * ((x - epsolon.reshape(-1, 1)) ** 2).T).sum(axis=0) / fik.sum(axis=0)
 
 while (count < 50):
     for i in range(k):
         p1 = (1 / shape[i]) * e_ln_precision_[i] + np.log(shape[i]) - np.log(2 * gamma(1 / shape[i]))
 
-        p2 = fik[:,i] * (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
+        p2 = fik[:, i] * (p1 - (e_precision_[i] * e_x_mean_lambda_[:, i]).reshape(-1, 1)).reshape(-1)
 
-        p3 =(1 / 2) * np.log(var_test[i]) + np.log(2) - np.log(2 * gamma(1 / 2)) - var_test[i] * (x-epsolon[i])**2
+        p3 = (1 / 2) * np.log(1 / var_test[i]) + np.log(2) - np.log(2 * gamma(1 / 2)) - 1 / var_test[i] * (
+                    x - epsolon[i]) ** 2
 
-        p4 = e_ln_pi[i] + p2 + (1-fik[:, i])*p3
+        p4 = e_ln_pi[i] + p2 + (1 - fik[:, i]) * p3
 
         # fik[:, i] = rnk[:, i] * (p2 + np.log(phi[i]))
         #
@@ -264,8 +263,6 @@ while (count < 50):
 
         z[:, i] = p4
 
-
-
     # b = z.max(axis=0)
     # b1 = np.exp(z - b)
     # rnk = b1/b1.sum(axis=0)
@@ -273,7 +270,9 @@ while (count < 50):
     rnk = np.exp(z) / np.reshape(np.exp(z).sum(axis=1), (-1, 1))
     Nk = rnk.sum(axis=0)
 
-
+    term1 = (rnk * (digamma(alphak) - np.log(betak))).sum(axis=1) / 2
+    term2 = 1 / 2 * (rnk * (alphak / betak) * ((x.reshape(-1, 1) - mk.reshape(-1, 1).T) ** 2 + 1 / sk)).sum(axis=1)
+    row_in_e = np.exp(term1 - term2)
     fik = (w * row_in_e.reshape(-1, 1)) / (w * row_in_e.reshape(-1, 1) + (1 - w) * epsolon_in)
     w = fik.sum(axis=0) / len(fik)
     epsolon = (fik * x.reshape(-1, 1)).sum(axis=0) / fik.sum(axis=0)
